@@ -6,13 +6,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport'; 
 import { JwtStrategy } from './jwt.strategy';
 
+const jwtSecret: string = process.env.WT_ACCESS_TOKEN_SECRET || 'access_secret';
+const tokenExpiry: string = process.env.ACCESS_TOKEN_EXPIRES_IN || '900s'; // default 900 seconds
+
 @Module({
     imports: [
         UsersModule,
         PassportModule,
         JwtModule.register({
-            secret: process.env.WT_ACCESS_TOKEN_SECRET || 'access_secret',
-            signOptions: { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '900s'},
+            secret: jwtSecret,
+            signOptions: { expiresIn: tokenExpiry },
         }),
     ],
     providers: [AuthService, JwtStrategy],
