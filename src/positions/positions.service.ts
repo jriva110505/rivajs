@@ -8,29 +8,39 @@ export class PositionsService {
 
   private pool = () => this.db.getPool();
 
+  // GET ALL POSITIONS
   async getAll() {
     const [rows] = await this.pool().execute<RowDataPacket[]>(
-      'SELECT id, position_code, position_name, created_at FROM positions'
+      'SELECT position_id, position_code, position_name, created_at FROM positions'
     );
     return rows;
   }
 
- async createPositions(position_code: string, position_name: string, userId: any) {
-  const [result] = await this.pool().execute<ResultSetHeader>(
-    'INSERT INTO positions (position_code, position_name, id) VALUES ( ?, ?, ?)',
-    [position_code, position_name, userId]
-  );
-  return { position_id: result.insertId, position_code, position_name, id: userId};
-}
+  // CREATE POSITION
+  async createPositions(position_code: string, position_name: string, userId: number) {
+    const [result] = await this.pool().execute<ResultSetHeader>(
+      'INSERT INTO positions (position_code, position_name, id) VALUES (?, ?, ?)',
+      [position_code, position_name, userId]
+    );
 
+    return {
+      position_id: result.insertId,
+      position_code,
+      position_name,
+      id: userId,
+    };
+  }
+
+  // FIND BY ID (FIXED)
   async findById(position_id: number) {
     const [rows] = await this.pool().execute<RowDataPacket[]>(
-      'SELECT id, position_code, position_name, created_at FROM positions WHERE id = ?',
+      'SELECT position_id, position_code, position_name, created_at FROM positions WHERE position_id = ?',
       [position_id]
     );
     return rows[0];
   }
 
+  // UPDATE POSITION (FIXED)
   async updatePositions(position_id: number, partial: { position_code?: string; position_name?: string }) {
     const fields: string[] = [];
     const values: any[] = [];
@@ -47,15 +57,18 @@ export class PositionsService {
 
     if (!fields.length) return await this.findById(position_id);
 
-    const sql = `UPDATE positions SET ${fields.join(', ')} WHERE id = ?`;
+    const sql = `UPDATE positions SET ${fields.join(', ')} WHERE position_id = ?`;
     values.push(position_id);
+
     await this.pool().execute<ResultSetHeader>(sql, values);
+
     return this.findById(position_id);
   }
 
+  // DELETE POSITION (FIXED)
   async deletePositions(position_id: number) {
     const [res] = await this.pool().execute<ResultSetHeader>(
-      'DELETE FROM positions WHERE id = ?',
+      'DELETE FROM positions WHERE position_id = ?',
       [position_id]
     );
     return res.affectedRows;
